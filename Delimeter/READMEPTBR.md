@@ -91,4 +91,4 @@ Contribuições são bem-vindas! Sinta-se à vontade para abrir uma *issue* ou e
 
 ## Licença
 
-Este projeto não especifica uma licença. Por favor, entre em contato com o autor para mais informações sobre o uso e distribuição.
+Este projeto possui uma licença MIT até o momento.
