@@ -3,7 +3,7 @@
 # Author:       Victor S Caricatte De Araújo
 # Email:        victorleniwys@gmail.com or victorsc@ufmg.br
 # Intitution:   Universidade federal de Minas Gerais
-# Version:      1.0.8
+# Version:      1.2.8
 # Date:         Jun, 3
 # ...................................
 # ==============================================================================
@@ -39,6 +39,99 @@ from openpyxl.styles import Font
 import traceback
 from matplotlib.widgets import Cursor
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
+import subprocess
+from collections import defaultdict
+
+class FastqProcessor(QThread):
+    progress_updated = pyqtSignal(int, str)
+    processing_completed = pyqtSignal(str)
+    error_occurred = pyqtSignal(str)
+
+    def __init__(self, fastq_files, output_dir, reference_index, threads=4):
+        super().__init__()
+        self.fastq_files = fastq_files
+        self.output_dir = output_dir
+        self.reference_index = reference_index
+        self.threads = threads
+        self.counts_file = None
+
+    def run(self):
+        try:
+            # Create output directory if it doesn't exist
+            os.makedirs(self.output_dir, exist_ok=True)
+            
+            # Process each sample
+            sample_counts = {}
+            total_samples = len(self.fastq_files)
+            
+            for i, (sample_name, fastq_paths) in enumerate(self.fastq_files.items()):
+                self.progress_updated.emit(int((i/total_samples)*50), f"Processing sample {sample_name}...")
+                
+                # Step 1: Alignment with HISAT2
+                sam_file = os.path.join(self.output_dir, f"{sample_name}.sam")
+                bam_file = os.path.join(self.output_dir, f"{sample_name}.bam")
+                sorted_bam = os.path.join(self.output_dir, f"{sample_name}.sorted.bam")
+                
+                hisat2_cmd = [
+                    "hisat2",
+                    "-x", self.reference_index,
+                    "-p", str(self.threads),
+                    "-S", sam_file
+                ]
+                
+                # Handle paired-end or single-end
+                if len(fastq_paths) == 2:
+                    hisat2_cmd.extend(["-1", fastq_paths[0], "-2", fastq_paths[1]])
+                else:
+                    hisat2_cmd.extend(["-U", fastq_paths[0]])
+                
+                # Run HISAT2
+                self.progress_updated.emit(int((i/total_samples)*50 + 10), f"Aligning {sample_name}...")
+                subprocess.run(hisat2_cmd, check=True)
+                
+                # Convert SAM to BAM and sort
+                self.progress_updated.emit(int((i/total_samples)*50 + 20), f"Sorting {sample_name}...")
+                subprocess.run(["samtools", "view", "-bS", sam_file], stdout=open(bam_file, "wb"), check=True)
+                subprocess.run(["samtools", "sort", "-o", sorted_bam, bam_file], check=True)
+                
+                # Step 2: Quantification with featureCounts
+                counts_file = os.path.join(self.output_dir, f"{sample_name}.counts.txt")
+                
+                featurecounts_cmd = [
+                    "featureCounts",
+                    "-a", f"{self.reference_index}.gtf",
+                    "-o", counts_file,
+                    "-T", str(self.threads),
+                    sorted_bam
+                ]
+                
+                self.progress_updated.emit(int((i/total_samples)*50 + 30), f"Quantifying {sample_name}...")
+                subprocess.run(featurecounts_cmd, check=True)
+                
+                # Read counts (skip first line which is a comment)
+                counts = pd.read_csv(counts_file, sep='\t', comment='#', index_col=0, header=0)
+                sample_counts[sample_name] = counts.iloc[:, -1]  # Last column has counts
+                
+                # Clean up intermediate files
+                os.remove(sam_file)
+                os.remove(bam_file)
+                os.remove(sorted_bam)
+            
+            # Combine counts from all samples
+            self.progress_updated.emit(90, "Combining counts...")
+            counts_df = pd.DataFrame(sample_counts)
+            
+            # Save combined counts
+            self.counts_file = os.path.join(self.output_dir, "combined_counts.csv")
+            counts_df.to_csv(self.counts_file)
+            
+            self.progress_updated.emit(100, "Processing complete!")
+            self.processing_completed.emit(self.counts_file)
+            
+        except subprocess.CalledProcessError as e:
+            self.error_occurred.emit(f"Error in subprocess: {str(e)}")
+        except Exception as e:
+            self.error_occurred.emit(f"Error processing FASTQ files: {str(e)}")
 
 class RNAseqAnalysisWorker(QThread):
     progress_updated = pyqtSignal(int)
@@ -149,6 +242,121 @@ class RNAseqAnalysisWorker(QThread):
         except Exception as e:
             self.error_occurred.emit(f"Unexpected error: {str(e)}\n{traceback.format_exc()}")
 
+class FastqInputDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("FASTQ File Processing Setup")
+        self.setMinimumWidth(600)
+        
+        layout = QVBoxLayout()
+        
+        # Reference genome selection
+        ref_group = QGroupBox("Reference Genome")
+        ref_layout = QVBoxLayout()
+        
+        self.ref_index_label = QLabel("No reference genome index selected")
+        ref_layout.addWidget(self.ref_index_label)
+        
+        self.browse_ref_btn = QPushButton("Browse Reference Index")
+        self.browse_ref_btn.clicked.connect(self.browse_reference)
+        ref_layout.addWidget(self.browse_ref_btn)
+        
+        ref_group.setLayout(ref_layout)
+        layout.addWidget(ref_group)
+        
+        # FASTQ files table
+        self.fastq_table = QTextEdit()
+        self.fastq_table.setReadOnly(True)
+        self.fastq_table.setPlaceholderText("No FASTQ files added yet")
+        layout.addWidget(QLabel("FASTQ Files:"))
+        layout.addWidget(self.fastq_table)
+        
+        # Add FASTQ files button
+        self.add_fastq_btn = QPushButton("Add FASTQ Files")
+        self.add_fastq_btn.clicked.connect(self.add_fastq_files)
+        layout.addWidget(self.add_fastq_btn)
+        
+        # Output directory
+        out_group = QGroupBox("Output Directory")
+        out_layout = QVBoxLayout()
+        
+        self.output_dir_label = QLabel("No output directory selected")
+        out_layout.addWidget(self.output_dir_label)
+        
+        self.browse_output_btn = QPushButton("Browse Output Directory")
+        self.browse_output_btn.clicked.connect(self.browse_output_dir)
+        out_layout.addWidget(self.browse_output_btn)
+        
+        out_group.setLayout(out_layout)
+        layout.addWidget(out_group)
+        
+        # Threads selection
+        threads_layout = QHBoxLayout()
+        self.threads_spin = QSpinBox()
+        self.threads_spin.setMinimum(1)
+        self.threads_spin.setMaximum(32)
+        self.threads_spin.setValue(4)
+        threads_layout.addWidget(QLabel("Number of threads:"))
+        threads_layout.addWidget(self.threads_spin)
+        threads_layout.addStretch()
+        layout.addLayout(threads_layout)
+        
+        # Button box
+        button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        button_box.accepted.connect(self.accept)
+        button_box.rejected.connect(self.reject)
+        layout.addWidget(button_box)
+        
+        self.setLayout(layout)
+        
+        self.fastq_files = defaultdict(list)
+        self.reference_index = None
+        self.output_dir = None
+    
+    def browse_reference(self):
+        file_path, _ = QFileDialog.getOpenFileName(self, "Select Reference Genome Index", "", "Index Files (*.ht2 *.ht2l)")
+        if file_path:
+            # Remove the .X.ht2 suffix to get the base name
+            if any(file_path.endswith(f".{i}.ht2") for i in range(1, 9)):
+                file_path = file_path[:file_path.rfind(".", 0, file_path.rfind("."))]
+            self.reference_index = file_path
+            self.ref_index_label.setText(f"Reference index: {os.path.basename(file_path)}")
+    
+    def add_fastq_files(self):
+        files, _ = QFileDialog.getOpenFileNames(self, "Select FASTQ Files", "", "FASTQ Files (*.fastq *.fq *.fastq.gz *.fq.gz)")
+        if files:
+            # Group files by sample name (assuming format: sample_name_R1.fastq, sample_name_R2.fastq)
+            for file_path in files:
+                base_name = os.path.basename(file_path)
+                # Remove extensions and _R1/_R2
+                sample_name = base_name.split('_')[0]
+                if '_R1' in base_name or '_1' in base_name:
+                    sample_name = base_name.split('_R1')[0] if '_R1' in base_name else base_name.split('_1')[0]
+                elif '_R2' in base_name or '_2' in base_name:
+                    sample_name = base_name.split('_R2')[0] if '_R2' in base_name else base_name.split('_2')[0]
+                
+                self.fastq_files[sample_name].append(file_path)
+            
+            # Update display
+            table_text = "Sample\tFiles\n"
+            for sample, files in self.fastq_files.items():
+                table_text += f"{sample}\t{', '.join([os.path.basename(f) for f in files])}\n"
+            self.fastq_table.setPlainText(table_text)
+    
+    def browse_output_dir(self):
+        dir_path = QFileDialog.getExistingDirectory(self, "Select Output Directory")
+        if dir_path:
+            self.output_dir = dir_path
+            self.output_dir_label.setText(f"Output directory: {dir_path}")
+    
+    def get_parameters(self):
+        return {
+            'fastq_files': self.fastq_files,
+            'reference_index': self.reference_index,
+            'output_dir': self.output_dir,
+            'threads': self.threads_spin.value()
+        }
+
 class SaveSessionDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -216,6 +424,7 @@ class RNAseqAnalysisPlatform(QMainWindow):
         self.create_help_tab()
         
         self.worker = None
+        self.fastq_processor = None
         self.analysis_results = None
         self.temp_dir = tempfile.mkdtemp()
         self.current_session_file = None
@@ -231,6 +440,9 @@ class RNAseqAnalysisPlatform(QMainWindow):
         
         open_metadata_action = file_menu.addAction("Open Metadata File")
         open_metadata_action.triggered.connect(self.open_metadata_file)
+        
+        process_fastq_action = file_menu.addAction("Process FASTQ Files")
+        process_fastq_action.triggered.connect(self.process_fastq_files)
         
         file_menu.addSeparator()
         
@@ -286,6 +498,10 @@ class RNAseqAnalysisPlatform(QMainWindow):
         self.browse_metadata_btn.clicked.connect(self.open_metadata_file)
         file_layout.addWidget(self.browse_metadata_btn)
         
+        self.process_fastq_btn = QPushButton("Process FASTQ Files")
+        self.process_fastq_btn.clicked.connect(self.process_fastq_files)
+        file_layout.addWidget(self.process_fastq_btn)
+        
         file_group.setLayout(file_layout)
         self.input_layout.addWidget(file_group)
         
@@ -334,6 +550,10 @@ class RNAseqAnalysisPlatform(QMainWindow):
         # Progress bar
         self.progress_bar = QProgressBar()
         self.input_layout.addWidget(self.progress_bar)
+        
+        # Status label
+        self.status_label = QLabel("Ready")
+        self.input_layout.addWidget(self.status_label)
         
         # Results tabs
         self.results_tab = QWidget()
@@ -435,26 +655,26 @@ class RNAseqAnalysisPlatform(QMainWindow):
         <h1>BRSA (Basic RNA-Seq Analysis) Help</h1>
         
         <h2>Getting Started</h2>
-        <p>1. Select your counts file (CSV format with genes as rows and samples as columns)</p>
-        <p>2. Select your metadata file (CSV format with sample information and conditions)</p>
-        <p>3. Set analysis parameters and click "Run Analysis"</p>
+        <p>1. Select your input files:</p>
+        <ul>
+            <li>Counts file (CSV format with genes as rows and samples as columns)</li>
+            <li>Metadata file (CSV format with sample information and conditions)</li>
+            <li>Or process raw FASTQ files directly</li>
+        </ul>
+        <p>2. Set analysis parameters and click "Run Analysis"</p>
         
         <h2>Analysis Steps</h2>
-        <p><b>1. Data Loading:</b> The platform loads and filters low count genes.</p>
-        <p><b>2. Normalization:</b> Counts are normalized using Counts Per Million (CPM).</p>
-        <p><b>3. Differential Expression:</b> T-test is performed between selected conditions with FDR correction.</p>
-        <p><b>4. Visualization:</b> PCA, heatmaps, and volcano plots are generated.</p>
-        <p><b>5. Enrichment Analysis:</b> GO, KEGG, Reactome and Disease Ontology analysis can be run on significant genes.</p>
-        
-        <h2>Session Management</h2>
-        <p>Save your analysis session (including parameters and results) to a JSON file for later use.</p>
-        
-        <h2>Exporting Results</h2>
-        <p>Export results as PDF reports or Excel workbooks with multiple sheets.</p>
+        <p><b>1. FASTQ Processing (if selected):</b> Alignment with HISAT2 and quantification with featureCounts.</p>
+        <p><b>2. Data Loading:</b> The platform loads and filters low count genes.</p>
+        <p><b>3. Normalization:</b> Counts are normalized using Counts Per Million (CPM).</p>
+        <p><b>4. Differential Expression:</b> T-test is performed between selected conditions with FDR correction.</p>
+        <p><b>5. Visualization:</b> PCA, heatmaps, and volcano plots are generated.</p>
+        <p><b>6. Enrichment Analysis:</b> GO, KEGG, Reactome and Disease Ontology analysis can be run on significant genes.</p>
         
         <h2>Requirements</h2>
         <p>- Python 3.7+</p>
-        <p>- Required packages: pandas, numpy, matplotlib, seaborn, scikit-learn, bioinfokit, gprofiler, reportlab, openpyxl</p>
+        <p>- Required Python packages: pandas, numpy, matplotlib, seaborn, scikit-learn, bioinfokit, gprofiler, reportlab, openpyxl</p>
+        <p>- For FASTQ processing: HISAT2, samtools, and featureCounts must be installed and in PATH</p>
 
         <h2>License</h2>
         <p>- Author: Victor Silveira Caricatte
@@ -517,6 +737,72 @@ class RNAseqAnalysisPlatform(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to open metadata file: {str(e)}")
     
+    def process_fastq_files(self):
+        dialog = FastqInputDialog(self)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            params = dialog.get_parameters()
+            
+            # Validate parameters
+            if not params['fastq_files']:
+                QMessageBox.warning(self, "Error", "Please add FASTQ files")
+                return
+                
+            if not params['reference_index']:
+                QMessageBox.warning(self, "Error", "Please select a reference genome index")
+                return
+                
+            if not params['output_dir']:
+                QMessageBox.warning(self, "Error", "Please select an output directory")
+                return
+            
+            # Check for required tools
+            try:
+                subprocess.run(["hisat2", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                subprocess.run(["samtools", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                subprocess.run(["featureCounts", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            except FileNotFoundError as e:
+                QMessageBox.critical(self, "Error", f"Required tool not found: {e.filename}. Please install HISAT2, samtools, and featureCounts.")
+                return
+            
+            # Setup FASTQ processor thread
+            self.fastq_processor = FastqProcessor(
+                fastq_files=params['fastq_files'],
+                output_dir=params['output_dir'],
+                reference_index=params['reference_index'],
+                threads=params['threads']
+            )
+            
+            self.fastq_processor.progress_updated.connect(self.update_fastq_progress)
+            self.fastq_processor.processing_completed.connect(self.fastq_processing_complete)
+            self.fastq_processor.error_occurred.connect(self.fastq_processing_error)
+            
+            self.process_fastq_btn.setEnabled(False)
+            self.run_btn.setEnabled(False)
+            self.progress_bar.setValue(0)
+            self.status_label.setText("Starting FASTQ processing...")
+            self.fastq_processor.start()
+    
+    def update_fastq_progress(self, value, message):
+        self.progress_bar.setValue(value)
+        self.status_label.setText(message)
+    
+    def fastq_processing_complete(self, counts_file):
+        self.process_fastq_btn.setEnabled(True)
+        self.run_btn.setEnabled(True)
+        self.counts_file = counts_file
+        self.counts_file_label.setText(f"Counts file: {os.path.basename(counts_file)}")
+        QMessageBox.information(self, "Success", "FASTQ files processed successfully!")
+    
+    def fastq_processing_error(self, error_msg):
+        self.process_fastq_btn.setEnabled(True)
+        self.run_btn.setEnabled(True)
+        error_dialog = QMessageBox(self)
+        error_dialog.setIcon(QMessageBox.Icon.Critical)
+        error_dialog.setWindowTitle("FASTQ Processing Error")
+        error_dialog.setText("An error occurred during FASTQ processing")
+        error_dialog.setDetailedText(error_msg)
+        error_dialog.exec()
+    
     def run_analysis(self):
         if not hasattr(self, 'counts_file') or not hasattr(self, 'metadata_file'):
             QMessageBox.warning(self, "Error", "Please select both counts and metadata files")
@@ -545,14 +831,17 @@ class RNAseqAnalysisPlatform(QMainWindow):
         
         self.run_btn.setEnabled(False)
         self.progress_bar.setValue(0)
+        self.status_label.setText("Starting analysis...")
         self.worker.start()
     
     def update_progress(self, value):
         self.progress_bar.setValue(value)
+        self.status_label.setText(f"Analysis progress: {value}%")
     
     def analysis_finished(self, results):
         self.analysis_results = results
         self.run_btn.setEnabled(True)
+        self.status_label.setText("Analysis complete!")
         
         # Show results in tabs
         self.show_de_results()
@@ -759,7 +1048,7 @@ class RNAseqAnalysisPlatform(QMainWindow):
                 QMessageBox.warning(self, "Error", "Please select at least one data source")
                 return
                 
-            gp = GProfiler(return_dataframe=True)
+            gp = gprofiler.GProfiler(return_dataframe=True)
             enrichment_results = gp.profile(
                 organism='hsapiens',
                 query=sig_genes,
@@ -1101,6 +1390,10 @@ class RNAseqAnalysisPlatform(QMainWindow):
         # Stop any running worker thread
         if self.worker and self.worker.isRunning():
             self.worker.terminate()
+        
+        # Stop any running FASTQ processor thread
+        if self.fastq_processor and self.fastq_processor.isRunning():
+            self.fastq_processor.terminate()
         
         event.accept()
 
