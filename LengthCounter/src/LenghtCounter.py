@@ -1,7 +1,7 @@
 """
 # ==============================================================================
 # Author:       Victor S Caricatte De Araújo
-# Email:        victorleniwys@gmail.com or victorsc@ufmg.br
+# Email:        victorsc@ufmg.br
 # Intitution:   Universidade federal de Minas Gerais
 # Version:      1.1.9
 # Date:         Abr, 28
