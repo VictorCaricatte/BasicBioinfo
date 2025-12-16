@@ -1,4 +1,4 @@
-# LengthAnalay.py - Analisador de Sequências FASTA/FASTQ
+# LengthCounter.py - Analisador de Sequências FASTA/FASTQ
 
 **Autor:** Victor S. Caricatte De Araújo
 **Email:** victorleniwys@gmail.com ou victorsc@ufmg.br
@@ -61,7 +61,7 @@ A aplicação utiliza bibliotecas como PyQt5 para a interface gráfica, Matplotl
 
 ## Instalação
 
-1.  Clone o repositório ou baixe o arquivo `lenghtanaly.py`.
+1.  Clone o repositório ou baixe o arquivo `LengthCounter.py`.
 2.  Instale as dependências necessárias. Você pode usar o pip:
 
     ```bash
