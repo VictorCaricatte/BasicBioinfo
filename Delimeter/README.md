@@ -83,7 +83,7 @@ Before igniting the reactor, ensure the following particles are available in you
 
 **Step 1 — Clone the genetic repository:**
 ```bash
-git clone https://github.com/VictorCaricatte/BasicBioinfo/blob/main/Delimeter/src/.git
+git clone https://github.com/VictorCaricatte/BasicBioinfo.git
 cd delimiter
 ```
 
