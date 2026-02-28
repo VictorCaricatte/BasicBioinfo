@@ -15,7 +15,6 @@
 [![Python](https://img.shields.io/badge/Python-3.9%2B-8a2be2?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-MIT-ff6600?style=for-the-badge)](LICENSE)
 [![Status](https://img.shields.io/badge/Status-Alive%20(barely)-darkred?style=for-the-badge)]()
-[![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20macOS-black?style=for-the-badge)]()
 
 *A complete, unholy RNA-Seq analysis pipeline conjured from the depths of bioinformatics arcana — featuring differential expression, machine learning, protein interactomes, and survival analysis.*
 
@@ -482,7 +481,7 @@ By using BRSA, you implicitly agree to cite the relevant methodological referenc
 
 **Victor S. Caricatte De Araújo (Frankestein)**  
 *Universidade Federal de Minas Gerais (UFMG)*  
-Version: `0.9.0` — *The Machine Learning & Interactome Expansion*
+Version: `0.9.0` 
 
 ---
 
