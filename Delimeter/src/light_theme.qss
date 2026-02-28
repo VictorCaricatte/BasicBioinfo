@@ -1,0 +1,130 @@
+/* Core Dimension Variables */
+#CoreMatrix { background-color: #f8fafc; }
+#DimensionStack { background-color: #f8fafc; }
+
+/* Quantum Navigation Array (Sidebar) */
+#SidebarMatrix {
+    background-color: #ffffff;
+    border-right: 1px solid #e2e8f0;
+}
+#SidebarLogo {
+    color: #0f172a;
+    font-size: 20px;
+    font-weight: bold;
+    padding-bottom: 20px;
+}
+#SidebarButton {
+    background-color: transparent;
+    color: #64748b;
+    text-align: left;
+    padding: 12px 15px;
+    font-size: 14px;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+}
+#SidebarButton:hover {
+    background-color: #f1f5f9;
+    color: #0f172a;
+}
+#SidebarButton:pressed {
+    background-color: #e2e8f0;
+}
+
+/* Supernova Hero Banner */
+#SupernovaBanner {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #1a936f, stop:1 #005082);
+    border-radius: 16px;
+}
+#HeroTitle { color: #ffffff; font-size: 32px; font-weight: bold; }
+#HeroDesc { color: #e2e8f0; font-size: 16px; line-height: 1.5; }
+
+/* Warp Gate Cards */
+#ActionCard {
+    background-color: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+}
+#ActionCard:hover {
+    background-color: #f8fafc;
+    border: 1px solid #cbd5e1;
+}
+#CardIcon { font-size: 24px; }
+#CardTitle { color: #0f172a; font-size: 15px; font-weight: bold; }
+#CardSubtitle { color: #64748b; font-size: 12px; }
+#CardArrow { color: #64748b; font-size: 24px; padding-right: 10px; }
+
+/* Primary Action Buttons */
+#PrimaryActionBtn {
+    background-color: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 10px;
+    font-weight: bold;
+}
+#PrimaryActionBtn:hover { background-color: #1d4ed8; }
+
+#WarningActionBtn {
+    background-color: #059669;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 10px;
+    font-weight: bold;
+}
+#WarningActionBtn:hover { background-color: #047857; }
+#DangerButton { background-color: #ef4444; color: white; border: none; border-radius: 4px; font-size: 16px; }
+#DangerButton:hover { background-color: #dc2626; }
+
+/* Filter Pods */
+#FilterPod {
+    background-color: #ffffff;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 5px;
+}
+
+/* General Controls */
+QLabel { color: #0f172a; }
+QLineEdit, QComboBox, QTextEdit {
+    background-color: #ffffff;
+    color: #0f172a;
+    border: 1px solid #cbd5e1;
+    border-radius: 5px;
+    padding: 6px;
+}
+QLineEdit:focus, QComboBox:focus { border: 1px solid #2563eb; }
+QPushButton {
+    background-color: #e2e8f0;
+    color: #0f172a;
+    border: none;
+    border-radius: 5px;
+    padding: 8px;
+}
+QPushButton:hover { background-color: #cbd5e1; }
+
+QGroupBox { border: 1px solid #cbd5e1; border-radius: 8px; margin-top: 15px; font-weight: bold; color: #2563eb; }
+QGroupBox::title { subcontrol-origin: margin; left: 10px; padding: 0 5px; }
+
+/* Data Grid */
+#DataGrid {
+    background-color: #ffffff;
+    color: #0f172a;
+    gridline-color: #e2e8f0;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+}
+QHeaderView::section {
+    background-color: #f1f5f9;
+    color: #2563eb;
+    padding: 5px;
+    border: none;
+    border-right: 1px solid #cbd5e1;
+    font-weight: bold;
+}
+#CleanScroll { border: none; background-color: transparent; }
+
+#StatusBarMatrix { background-color: #ffffff; color: #64748b; }
+QProgressBar { border: none; border-radius: 4px; background-color: #e2e8f0; color: transparent; }
+QProgressBar::chunk { background-color: #059669; border-radius: 4px; }
