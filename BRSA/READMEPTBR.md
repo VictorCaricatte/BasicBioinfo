@@ -15,6 +15,7 @@
 [![Python](https://img.shields.io/badge/Python-3.9%2B-8a2be2?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![Licença](https://img.shields.io/badge/Licença-MIT-ff6600?style=for-the-badge)](LICENSE)
 [![Status](https://img.shields.io/badge/Status-Vivo%20(por%20pouco)-darkred?style=for-the-badge)]()
+[![Plataforma](https://img.shields.io/badge/Plataforma-Windows%20%7C%20Linux%20%7C%20macOS-8a2be2?style=for-the-badge)]()
 
 *Um pipeline completo e profano de análise de RNA-Seq, invocado das profundezas da arcana bioinformática — com expressão diferencial, aprendizado de máquina, interatoma proteico e análise de sobrevivência.*
 
