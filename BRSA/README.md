@@ -108,7 +108,7 @@ kallisto version
 
 ```bash
 # Clone the forbidden repository
-git clone https://github.com/VictorCaricatte/BasicBioinfo/tree/main/BRSA/src
+git clone https://github.com/VictorCaricatte/BasicBioinfo/tree/main/BRSA/src.git
 cd BRSA
 
 # Conjure a virtual sanctuary (recommended)
