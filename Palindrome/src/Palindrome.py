@@ -3,7 +3,7 @@
 # Author:       Victor S Caricatte De Araújo
 # Email:        victorsc@ufmg.br
 # Intitution:   Universidade federal de Minas Gerais
-# Version:      1.3.7
+# Version:      0.0.1
 # Date:         Jun, 4
 # ...................................
 # ==============================================================================
