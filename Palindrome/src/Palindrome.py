@@ -1,377 +1,184 @@
+import sys
+import argparse
+from Logic import GrandAlchemistOfDoubleStrands
+from DB import GuardianDragonOfMatrices
+
+def embark_on_terminal_crusade():
+    """CLI mode explicitly focused on the dark lords of the terminal."""
+    
+    help_epilogue = """
+-----------------------------------------------------------------------------------
+📖 PALINDROME (GRIMOIRE OF HELP)
+-----------------------------------------------------------------------------------
+Welcome to the Palindrome. This tool fuses dark fantasy with 
+professional bioinformatics to analyze DNA sequences at a profound level.
+
+NEW MAGICS CONJURED:
+  - --batch: Invokes the Hellfire Forge to process a full directory of FASTA tomes.
+             Example: python Palindrome.py --batch ./my_fasta_folder
+  - --crispr: Awakens the Homunculus Cas9 to identify NGG PAM targets.
+  - --mask: Casts the Dust Shield, transmuting tandem repeats into 'N's.
+  - --trim: Wields the Blacksmith Scissors to strip terminal 'N's.
+  - --report: Scribes the Ultimate HTML Parchment (Pergaminho Definitivo).
+  - --clean: Banishes all shadow remnants (SVG, CSV, HTML) to the void.
+  - Massive Scroll Reading: Handles multi-FASTA files perfectly with the -f flag.
+  - PDF Demon Exorcism: Purifies messy PDF copied texts automatically.
+-----------------------------------------------------------------------------------
 """
-# ==============================================================================
-# Author:       Victor S Caricatte De Araújo
-# Email:        victorsc@ufmg.br
-# Intitution:   Universidade federal de Minas Gerais
-# Version:      0.0.1
-# Date:         Jun, 4
-# ...................................
-# ==============================================================================
-"""
 
-import tkinter as tk
-from tkinter import ttk, messagebox, filedialog
-import os
-from Bio.Seq import Seq
-import webbrowser
-from tkinter.scrolledtext import ScrolledText
+    war_herald = argparse.ArgumentParser(
+        description="⚔️ Palindrome CLI Grandmaster - The insane explorer of genomic spells.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=help_epilogue
+    )
+    
+    war_herald.add_argument("-s", "--sequence", type=str, default=None, 
+                                  help="The raw DNA potion to be scanned manually.")
+    war_herald.add_argument("-f", "--file", type=str, default=None, 
+                                  help="Path to an ancient genomic tome (handles multi-FASTA).")
+    war_herald.add_argument("-n", "--ncbi", type=str, default=None, 
+                                  help="Accession ID to abduct from the NCBI dimension.")
+    war_herald.add_argument("--mock", type=int, default=None, 
+                                  help="Length of random mock DNA homunculus to conjure for testing.")
+    war_herald.add_argument("--batch", type=str, default=None, 
+                                  help="Directory path to ignite the Hellfire Batch Forge.")
+    war_herald.add_argument("-min", "--minimum", type=int, default=4, 
+                                  help="Minimum power (length) of the palindrome.")
+    war_herald.add_argument("-max", "--maximum", type=int, default=12, 
+                                  help="Maximum power (length) of the palindrome.")
+    war_herald.add_argument("-mis", "--mismatches", type=int, default=0, 
+                                  help="Tolerated curses (mismatches within the palindrome).")
+    war_herald.add_argument("--regex", type=str, default=None, 
+                                  help="Search for a regex beast pattern within the sequence.")
+    war_herald.add_argument("--crispr", action="store_true", 
+                                  help="Invoke Homunculus Cas9 to map CRISPR cleavage sites.")
+    war_herald.add_argument("--mask", action="store_true", 
+                                  help="Raise the Dust Shield to mask repetitive regions.")
+    war_herald.add_argument("--trim", action="store_true", 
+                                  help="Wield Blacksmith Scissors to trim poor quality edges.")
+    war_herald.add_argument("--report", action="store_true", 
+                                  help="Forge the Pergaminho Definitivo (Interactive HTML report).")
+    war_herald.add_argument("--clean", action="store_true", 
+                                  help="Clean up SVG, CSV, and HTML shadows left in the database cavern.")
+    
+    scroll_args = war_herald.parse_args()
 
-class DNAPalindromeFinder:
-    """
-    Application for identifying palindromic sequences in DNA.
+    print("\n🧙‍♂️ The Hermit Mage lights the bonfire and begins chanting...\n")
     
-    DNA palindromes are sequences that are identical to their reverse complement.
-    These sequences are important as they often represent binding sites for
-    restriction enzymes.
-    """
+    supreme_mage = GrandAlchemistOfDoubleStrands()
+    db_dragon = GuardianDragonOfMatrices()
     
-    def __init__(self, root):
-        """Initialize the application with the main window"""
-        self.root = root
-        self._setup_main_window()
-        self.create_widgets()
-        self._set_default_values()
-    
-    def _setup_main_window(self):
-        """Configure main window properties"""
-        self.root.title("DNA Palindrome Finder - Bioinformatics Tool")
-        self.root.geometry("900x700")
-        self.root.minsize(800, 600)
-        self.root.option_add('*tearOff', False)
-        
-        # Configure style
-        style = ttk.Style()
-        style.configure('TButton', padding=5)
-        style.configure('TEntry', padding=5)
-        style.configure('TNotebook.Tab', padding=[10, 5])
-    
-    def _set_default_values(self):
-        """Set default values for fields"""
-        self.min_length.set("4")
-        self.max_length.set("12")
-        self.status_var.set("Ready to analyze DNA sequences")
-    
-    def create_widgets(self):
-        """Create all interface elements"""
-        # Create notebook (tabs)
-        self.notebook = ttk.Notebook(self.root)
-        self.notebook.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-        
-        # Main tab (analysis)
-        self.main_frame = ttk.Frame(self.notebook)
-        self.notebook.add(self.main_frame, text="DNA Analysis")
-        
-        # Help tab
-        self.help_frame = ttk.Frame(self.notebook)
-        self.notebook.add(self.help_frame, text="Help")
-        
-        # Configure main tab
-        self._setup_main_tab()
-        
-        # Configure help tab
-        self._setup_help_tab()
-        
-        # Create menu
-        self._create_menu()
-        
-        # Status bar
-        self.status_var = tk.StringVar()
-        self.status_bar = ttk.Label(self.root, textvariable=self.status_var, relief=tk.SUNKEN)
-        self.status_bar.pack(side=tk.BOTTOM, fill=tk.X)
-    
-    def _setup_main_tab(self):
-        """Configure the main analysis tab"""
-        # Input frame
-        input_frame = ttk.LabelFrame(self.main_frame, text="DNA Input", padding="10")
-        input_frame.pack(fill=tk.X, padx=5, pady=5)
-        
-        # Text area for DNA sequence
-        self.dna_entry = ScrolledText(input_frame, height=10, wrap=tk.WORD, font=('Courier', 10))
-        self.dna_entry.pack(fill=tk.BOTH, expand=True)
-        
-        # Settings frame
-        settings_frame = ttk.Frame(self.main_frame)
-        settings_frame.pack(fill=tk.X, padx=5, pady=5)
-        
-        # Minimum length
-        ttk.Label(settings_frame, text="Min length:").pack(side=tk.LEFT)
-        self.min_length = tk.StringVar()
-        ttk.Entry(settings_frame, textvariable=self.min_length, width=5).pack(side=tk.LEFT, padx=(0, 20))
-        
-        # Maximum length
-        ttk.Label(settings_frame, text="Max length:").pack(side=tk.LEFT)
-        self.max_length = tk.StringVar()
-        ttk.Entry(settings_frame, textvariable=self.max_length, width=5).pack(side=tk.LEFT)
-        
-        # Analyze button
-        ttk.Button(settings_frame, text="Analyze DNA", command=self.find_palindromes).pack(side=tk.RIGHT)
-        
-        # Results frame
-        results_frame = ttk.LabelFrame(self.main_frame, text="Results", padding="10")
-        results_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
-        
-        # Treeview for results
-        self.results_tree = ttk.Treeview(results_frame, columns=('Position', 'Sequence', 'Length'), show='headings')
-        self.results_tree.heading('Position', text='Position')
-        self.results_tree.heading('Sequence', text='Sequence')
-        self.results_tree.heading('Length', text='Length')
-        self.results_tree.column('Position', width=100, anchor=tk.CENTER)
-        self.results_tree.column('Sequence', width=200, anchor=tk.CENTER)
-        self.results_tree.column('Length', width=100, anchor=tk.CENTER)
-        
-        # Scrollbar and packing
-        scrollbar = ttk.Scrollbar(results_frame, orient=tk.VERTICAL, command=self.results_tree.yview)
-        self.results_tree.configure(yscroll=scrollbar.set)
-        
-        # Action buttons
-        button_frame = ttk.Frame(results_frame)
-        button_frame.pack(side=tk.BOTTOM, fill=tk.X, pady=(5, 0))
-        
-        ttk.Button(button_frame, text="Copy Results", command=self.copy_results).pack(side=tk.LEFT)
-        ttk.Button(button_frame, text="Save Results", command=self.save_results).pack(side=tk.LEFT, padx=5)
-        ttk.Button(button_frame, text="Clear All", command=self.clear_all).pack(side=tk.RIGHT)
-        
-        # Pack treeview and scrollbar
-        self.results_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-    
-    def _setup_help_tab(self):
-        """Configure the help/documentation tab"""
-        # Main frame
-        help_content = ScrolledText(self.help_frame, wrap=tk.WORD, padx=10, pady=10)
-        help_content.pack(fill=tk.BOTH, expand=True)
-        
-        # Help content
-        help_text = """=== DNA Palindrome Finder ===
+    if scroll_args.clean:
+        cleansed = db_dragon.banish_shadow_remnants_to_void()
+        print(f"🧹 Void Cleansing Complete. {cleansed} shadows banished from the physical realm.")
+        # If the user only wanted to clean, exit gracefully.
+        if not any([scroll_args.file, scroll_args.sequence, scroll_args.ncbi, scroll_args.mock, scroll_args.batch]):
+            sys.exit(0)
 
-DESCRIPTION:
-This program identifies palindromic sequences in DNA, which are sequences that are identical when compared to their reverse complement strand. These sequences are important in molecular biology as they often represent binding sites for restriction enzymes.
-
-HOW TO USE:
-1. Enter your DNA sequence in the text area (only A, T, C, G characters)
-2. Set the minimum and maximum length of palindromes to search for
-3. Click "Analyze DNA" to start the search
-4. Results will be displayed in the table below
-
-FEATURES:
-- Load sequences from FASTA files
-- Save results in text or CSV format
-- Copy results to clipboard
-- Configure palindrome length parameters
-
-TECHNICAL DEFINITION:
-A DNA palindrome is a nucleotide sequence that is identical to its reverse complement strand. For example:
-Sequence: 5'-GAATTC-3'
-Reverse complement: 3'-CTTAAG-5'
-When reversed: 5'-GAATTC-3'
-
-This is the recognition site for the EcoRI restriction enzyme.
-
-MENU:
-- File: Load/save files and exit the program
-- Help: Documentation and program information
-
-DEVELOPED BY:
-Victor Silveira Caricatte/ Universidade Federal de Minas Gerais.
-
-VERSION: 1.1 (Python 3.x)
-"""
-        help_content.insert(tk.END, help_text)
-        help_content.config(state=tk.DISABLED)
-        
-    
-    def _create_menu(self):
-        """Create the menu bar"""
-        menubar = tk.Menu(self.root)
-        self.root.config(menu=menubar)
-        
-        # File Menu
-        file_menu = tk.Menu(menubar, tearoff=0)
-        menubar.add_cascade(label="File", menu=file_menu)
-        file_menu.add_command(label="Open FASTA file...", command=self.load_fasta_file)
-        file_menu.add_command(label="Save results...", command=self.save_results)
-        file_menu.add_separator()
-        file_menu.add_command(label="Exit", command=self.root.quit)
-        
-        # Help Menu
-        help_menu = tk.Menu(menubar, tearoff=0)
-        menubar.add_cascade(label="Help", menu=help_menu)
-        help_menu.add_command(label="Documentation", command=self.show_documentation)
-        help_menu.add_command(label="About", command=self.show_about)
-    
-    def validate_dna_sequence(self, sequence):
-        """Validate that the sequence contains only valid bases (A, T, C, G)"""
-        sequence = sequence.upper().replace("\n", "").replace(" ", "")
-        if not sequence:
-            raise ValueError("DNA sequence is empty")
-        invalid_bases = set(sequence) - {'A', 'T', 'C', 'G'}
-        if invalid_bases:
-            raise ValueError(f"Invalid bases found: {', '.join(invalid_bases)}")
-        return sequence
-    
-    def is_palindrome(self, substring):
-        """Efficiently checks if a sequence is a palindrome"""
-        complement = {'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C'}
-        return substring == ''.join([complement[base] for base in substring[::-1]])
-    
-    def find_dna_palindromes(self, sequence, min_len, max_len):
-        """Optimized version of palindrome search"""
-        palindromes = []
-        n = len(sequence)
-        
-        for length in range(min_len, min(max_len, n) + 1):
-            for i in range(n - length + 1):
-                substring = sequence[i:i+length]
-                if self.is_palindrome(substring):
-                    palindromes.append((i+1, substring))  # +1 for 1-based position
-        
-        return sorted(palindromes, key=lambda x: x[0])  # Sort by position
-    
-    def find_palindromes(self):
-        """Controls the palindrome search process"""
+    # Triggering the Batch Forge bypasses the single-file pipeline
+    if scroll_args.batch:
         try:
-            # Clear previous results
-            self.results_tree.delete(*self.results_tree.get_children())
-            
-            # Get and validate sequence
-            dna_sequence = self.validate_dna_sequence(self.dna_entry.get("1.0", tk.END))
-            
-            # Get parameters
-            min_len = max(2, int(self.min_length.get()))  # Ensure minimum of 2
-            max_len = max(min_len, int(self.max_length.get()))  # Ensure max >= min
-            
-            # Update interface during long processing
-            self.status_var.set("Searching for palindromes...")
-            self.root.update()
-            
-            # Search palindromes in a separate thread to avoid freezing the interface
-            import threading
-            threading.Thread(
-                target=self._find_palindromes_thread,
-                args=(dna_sequence, min_len, max_len),
-                daemon=True
-            ).start()
-            
-        except ValueError as e:
-            messagebox.showerror("Error", str(e))
-            self.status_var.set("Input data error")
-        except Exception as e:
-            messagebox.showerror("Error", f"Unexpected error: {str(e)}")
-            self.status_var.set("Processing error")
-    
-    def _find_palindromes_thread(self, sequence, min_len, max_len):
-        """Runs in separate thread to avoid freezing the GUI"""
-        try:
-            palindromes = self.find_dna_palindromes(sequence, min_len, max_len)
-            
-            # Update interface in main thread
-            self.root.after(0, self._display_results, palindromes)
-            
-        except Exception as e:
-            self.root.after(0, messagebox.showerror, "Error", f"Error during search:\n{str(e)}")
-            self.root.after(0, lambda: self.status_var.set("Processing error"))
-    
-    def _display_results(self, palindromes):
-        """Display results in the interface"""
-        if not palindromes:
-            messagebox.showinfo("Information", "No palindromes found with the specified criteria.")
-            self.status_var.set("Search completed - No palindromes found")
-            return
+            print(f"🏭 Igniting the Hellfire Batch Forge in realm: {scroll_args.batch}")
+            scrolls_forged, summary_tome = supreme_mage.ignite_the_hellfire_batch_forge(scroll_args.batch, db_dragon)
+            print(f"✅ Glorious Success! Forged {scrolls_forged} ancient scrolls.")
+            print(f"📄 The Grand Summary Tome has been mapped at: {summary_tome}\n")
+            sys.exit(0)
+        except Exception as batch_disaster:
+            print(f"☠️ The Batch Forge collapsed: {str(batch_disaster)}")
+            sys.exit(1)
+
+    try:
+        raw_sequence = ""
         
-        for pos, seq in palindromes:
-            self.results_tree.insert('', tk.END, values=(f"{pos}-{pos+len(seq)-1}", seq, len(seq)))
+        # Determine the source of the magical runes
+        if scroll_args.mock:
+            print(f"🎲 Conjuring a Homunculus of size {scroll_args.mock}...")
+            raw_sequence = supreme_mage.conjure_homunculus_mock_dna(scroll_args.mock)
+        elif scroll_args.ncbi:
+            print(f"🛸 Opening dimensional portal to NCBI for {scroll_args.ncbi}...")
+            raw_sequence = supreme_mage.abduct_alien_dna_from_ncbi_dimension(scroll_args.ncbi)
+        elif scroll_args.file:
+            print(f"📜 Unrolling the ancient tome (supports multi-FASTA): {scroll_args.file}...")
+            raw_sequence = supreme_mage.decipher_ancient_genomic_tome(scroll_args.file)
+        elif scroll_args.sequence:
+            raw_sequence = scroll_args.sequence
+        else:
+            print("☠️ Catastrophe! You must provide a source: -s, -f, --ncbi, --batch, or --mock!")
+            sys.exit(1)
+
+        # Step 1: Purify the text (Removes PDF spaces, numbers, formatting)
+        purified_seq = supreme_mage.exorcise_pdf_demons_and_purify(raw_sequence)
         
-        self.status_var.set(f"Search completed - {len(palindromes)} palindromes found")
-    
-    def load_fasta_file(self):
-        """Load sequence from a FASTA file"""
-        filepath = filedialog.askopenfilename(
-            filetypes=[("FASTA files", "*.fasta;*.fa;*.faa;*.fna"), ("Text files", "*.txt"), ("All files", "*.*")],
-            title="Select a FASTA file"
-        )
-        if filepath:
-            try:
-                with open(filepath, 'r') as file:
-                    content = file.read()
-                    # Extract sequence (ignore header and comment lines)
-                    sequence = ''.join(line.strip() for line in content.split('\n') if not line.startswith('>'))
-                    self.dna_entry.delete("1.0", tk.END)
-                    self.dna_entry.insert("1.0", sequence)
-                    self.status_var.set(f"File loaded: {os.path.basename(filepath)}")
-            except Exception as e:
-                messagebox.showerror("Error", f"Could not read file:\n{str(e)}")
-                self.status_var.set("Error loading file")
-    
-    def save_results(self):
-        """Save results to a file"""
-        if not self.results_tree.get_children():
-            messagebox.showwarning("Warning", "No results to save")
-            return
+        # Apply pre-processing spells if invoked
+        if scroll_args.mask:
+            print("🛡️ Raising the Dust Shield... Masking low complexity regions.")
+            purified_seq = supreme_mage.raise_dust_shield_masking(purified_seq)
+            
+        if scroll_args.trim:
+            print("✂️ Wielding the Blacksmith Scissors... Trimming loose edges.")
+            purified_seq = supreme_mage.wield_blacksmith_scissors_trimming(purified_seq)
         
-        filepath = filedialog.asksaveasfilename(
-            defaultextension=".txt",
-            filetypes=[("Text files", "*.txt"), ("CSV files", "*.csv"), ("All files", "*.*")],
-            title="Save results as"
+        # Regex search if requested
+        if scroll_args.regex:
+            hunted = supreme_mage.track_aberrations_via_regex(purified_seq, scroll_args.regex)
+            print(f"\n🔍 Regex Hunt Results for '{scroll_args.regex}':")
+            for h in hunted:
+                print(f"   - Found {h['found_beast']} at coord {h['start']}-{h['end']}")
+            print("-" * 50)
+            
+        # Homunculus Cas9 search if requested
+        if scroll_args.crispr:
+            cas9_targets = supreme_mage.summon_homunculus_cas9_cleavage(purified_seq)
+            print(f"\n🧪 Homunculus Cas9 Awakened! Found {len(cas9_targets)} targets:")
+            for target in cas9_targets[:15]: # Show up to 15 to avoid flooding the terminal
+                print(f"   - Target {target['target']} at {target['start']} (Strand: {target['strand']})")
+            if len(cas9_targets) > 15:
+                print(f"   ... and {len(cas9_targets) - 15} more hidden in the dark.")
+            print("-" * 50)
+            
+        # Core analysis
+        total_gc = supreme_mage.summon_dragon_breath_gc(purified_seq)
+        tally = supreme_mage.tally_the_magical_runes(purified_seq)
+        treasures = supreme_mage.conjure_search_for_palindromic_treasures(
+            purified_seq, scroll_args.minimum, scroll_args.maximum, scroll_args.mismatches
         )
         
-        if filepath:
-            try:
-                with open(filepath, 'w') as file:
-                    # Write header
-                    file.write("Position\tSequence\tLength\n")
-                    # Write data
-                    for item in self.results_tree.get_children():
-                        values = self.results_tree.item(item, 'values')
-                        file.write("\t".join(values) + "\n")
-                self.status_var.set(f"Results saved to {os.path.basename(filepath)}")
-            except Exception as e:
-                messagebox.showerror("Error", f"Could not save file:\n{str(e)}")
-                self.status_var.set("Error saving results")
-    
-    def copy_results(self):
-        """Copy results to clipboard"""
-        if not self.results_tree.get_children():
-            messagebox.showwarning("Warning", "No results to copy")
-            return
+        # Save output artifacts
+        csv_file = db_dragon.devour_csv_tribute_advanced("cli_alchemical_treasures.csv", treasures)
+        svg_file = supreme_mage.paint_runic_constellations_on_parchment(len(purified_seq), treasures, db_dragon.bone_lair)
         
-        result_text = "Position\tSequence\tLength\n"
-        for item in self.results_tree.get_children():
-            values = self.results_tree.item(item, 'values')
-            result_text += "\t".join(values) + "\n"
+        # Espelho do Ouroboros map integration
+        mystical_features = [{"start": t["start_idx"], "end": t["start_idx"] + t["size"]} for t in treasures]
+        ouroboros_file = supreme_mage.gaze_into_ouroboros_mirror(len(purified_seq), mystical_features, db_dragon.bone_lair)
         
-        self.root.clipboard_clear()
-        self.root.clipboard_append(result_text)
-        self.status_var.set("Results copied to clipboard")
-    
-    def clear_all(self):
-        """Clear all fields"""
-        self.dna_entry.delete("1.0", tk.END)
-        self.results_tree.delete(*self.results_tree.get_children())
-        self.min_length.set("4")
-        self.max_length.set("12")
-        self.status_var.set("Fields cleared - Ready for new analysis")
-    
-    def show_documentation(self):
-        """Show the help tab"""
-        self.notebook.select(self.help_frame)
-    
-    def show_about(self):
-        """Show the 'About' window"""
-        about_window = tk.Toplevel(self.root)
-        about_window.title("About DNA Palindrome Finder")
-        about_window.geometry("400x300")
+        # Report integration
+        if scroll_args.report:
+            spoils = {
+                'global_gc': total_gc,
+                'tally': tally,
+                'palindromes': treasures,
+            }
+            html_file = db_dragon.inscribe_ultimate_parchment_html("cli_ultimate_parchment.html", spoils)
+            print(f"📄 Pergaminho Definitivo (HTML) forged at: {html_file}")
         
-        ttk.Label(about_window, 
-                 text="DNA Palindrome Finder\n\nVersion 1.1\n\n"
-                      "Bioinformatics Tool\n\n"
-                      "Developed for DNA sequence analysis\n"
-                      "and identification of palindromic\n"
-                      "restriction sites",
-                 justify=tk.CENTER).pack(pady=20)
+        # Output Results to Terminal
+        print(f"🐉 Dragon's Breath (Total GC%): {total_gc:.2f}%")
+        print(f"🧮 Nucleotide Tally: {tally}")
         
-        ttk.Button(about_window, text="Close", command=about_window.destroy).pack(pady=10)
+        print(f"\n✨ Glory! {len(treasures)} Palindromic Relics unearthed:")
+        print(f"📂 CSV Saved to: {csv_file}")
+        print(f"🎨 Linear SVG Map drawn at: {svg_file}")
+        if ouroboros_file:
+            print(f"🌀 Ouroboros Circular Map drawn at: {ouroboros_file}")
+        print("\n" + "=" * 170)
+        print(f"{'COORD.':<10} | {'SEQ':<14} | {'MIS':<3} | {'GC%':<5} | {'TM(°C)':<6} | {'ΔG (kcal)':<9} | {'ENTROPY':<7} | {'METHYL.':<12} | {'PATHOGEN SIG.':<15}")
+        print("-" * 170)
+        for t in treasures:
+            print(f"{t['position']:<10} | {t['sequence']:<14} | {t['mismatches']:<3} | {t['gc']:<5} | {t['tm_celsius']:<6} | {t['delta_g']:<9} | {t['entropy']:<7} | {t['methylation']:<12} | {t['pathogen']:<15}")
+            
+    except Exception as magical_disaster:
+        print(f"\n☠️ A catastrophic failure corroded the system: {str(magical_disaster)}")
+        sys.exit(1)
 
 if __name__ == "__main__":
-    root = tk.Tk()
-    app = DNAPalindromeFinder(root)
-    root.mainloop()
+    embark_on_terminal_crusade()
