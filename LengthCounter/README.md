@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🍃 LenghtCount — Six Paths Ninja Suite 🍃
+# 🍃 LenghtCount  🍃
 
 > *"The Will of Fire applied to Bioinformatics."*
 
