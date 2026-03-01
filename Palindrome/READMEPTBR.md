@@ -56,7 +56,6 @@ Esta ferramenta oferece um pipeline unificado para entrada e purificação de se
 - **Cálculo da Razão Ti/Tv**: Razão transição/transversão para análise evolutiva
 - **Árvore Filogenética UPGMA**: Geração de árvore simples em formato Newick a partir de múltiplas sequências
 - **Design de Primers PCR**: Design heurístico de primers flanqueando cada palíndromo (GC%, Tm, verificação de hairpin)
-- **Varredura de Assinaturas Patogênicas**: Compara sequências com banco de motivos de virulência
 - **Cálculo de Peso Molecular**: Peso exato do DNA de fita dupla em Daltons
 - **Probabilidade de Ocorrência Aleatória**: Expectativa estatística de um palíndromo ocorrer ao acaso
 
@@ -192,7 +191,6 @@ Cada palíndromo detectado é reportado com os seguintes atributos:
 | `ΔG (kcal)` | Energia livre de Gibbs do dúplex |
 | `ENTROPY` | Entropia de Shannon (complexidade da sequência) |
 | `METHYL.` | Motivos de metilação detectados |
-| `PATHOGEN SIG.` | Correspondências com motivos de virulência |
 
 ---
 
