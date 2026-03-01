@@ -1,11 +1,12 @@
-# Ferramentas básicas para bioinformatas
+# Basic Tools for Bioinformaticians
 
 Hello friends,
 
-This repository contains some tools I created while working with bioinformatics. They were made due to research demands I had and still have. However, I ended up creating fun themes for them and improved some things to make them more complete, but they are still basic analysis tools for bioinformatics. Feel free to use them, fork them, and also create your own based on these. Feel free to report bugs, give suggestions, and also request improvements or implementations (new analyses and functionalities), as I may add them over time.
+This repository contains some tools I built while working with bioinformatics. They were created out of research demands I had and still have. Along the way I ended up giving them fun themes, and I improved a few things to make them more complete — but they are still basic bioinformatics analysis tools at their core. Feel free to use them, fork them, and build your own from them. You are also welcome to report bugs, make suggestions, and request improvements or new features (new analyses and functionalities), as I may add them over time.
 
-Sincerely,
-Victor SC
+
+Best regards,
+VictorSC
 
 ---
 
