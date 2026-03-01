@@ -197,7 +197,6 @@ O PALINDROME é uma ferramenta de linha de comando em Python para detecção e c
 - **Predição de ORF** em 6 fases de leitura
 - **Detecção de Repetições em Tandem** e **Mascaramento de Baixa Complexidade**
 - **Design de Primers de PCR** com verificação de GC%, Tm e hairpin flanqueando cada palíndromo
-- **Varredura de Assinaturas de Patógenos** em banco de dados de motivos de virulência
 - **Tradução de Códons** nas três fases de leitura
 - **Predição de Shine-Dalgarno e de Terminadores de Transcrição**
 - **Razão Ti/Tv** e **Árvore Filogenética UPGMA** para análise comparativa
