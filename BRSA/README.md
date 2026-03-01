@@ -13,7 +13,7 @@
 ### *"From the Graveyard of Raw Reads, Life Shall Rise."*
 
 [![Python](https://img.shields.io/badge/Python-3.9%2B-8a2be2?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
-[![License](https://img.shields.io/badge/License-MIT-ff6600?style=for-the-badge)](LICENSE)
+[![License](https://img.shields.io/badge/License-MIT-ff6600?style=for-the-badge)](https://github.com/VictorCaricatte/BasicBioinfo/blob/main/LICENSE)
 [![Status](https://img.shields.io/badge/Status-Alive%20(barely)-darkred?style=for-the-badge)]()
 [![Os](https://img.shields.io/badge/Plataforma-Windows%20%7C%20Linux%20%7C%20macOS-8a2be2?style=for-the-badge)]()
 
