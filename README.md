@@ -197,7 +197,6 @@ PALINDROME is a Python-based command-line tool for the detection and characteriz
 - **ORF Prediction** in 6 reading frames
 - **Tandem Repeat Detection** and **Low-Complexity Masking**
 - **PCR Primer Design** with GC%, Tm, and hairpin checks flanking each palindrome
-- **Pathogen Signature Scanning** against a virulence motif database
 - **Codon Translation** in three reading frames
 - **Shine-Dalgarno and Transcription Terminator Prediction**
 - **Ti/Tv Ratio** and **UPGMA Phylogenetic Tree** for comparative analysis
