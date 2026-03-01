@@ -56,7 +56,6 @@ This tool provides a unified pipeline for sequence input, purification, palindro
 - **Ti/Tv Ratio Calculation**: Transition/transversion ratio for evolutionary analysis
 - **UPGMA Phylogenetic Tree**: Simple Newick tree generation from multiple sequences
 - **PCR Primer Design**: Heuristic primer design flanking each palindrome (GC%, Tm, hairpin check)
-- **Pathogen Signature Scanning**: Matches sequences against a virulence motif database
 - **Molecular Weight Calculation**: Exact double-stranded DNA weight in Daltons
 - **Random Occurrence Probability**: Statistical expectation of a palindrome occurring by chance
 
@@ -192,7 +191,6 @@ Each detected palindrome is reported with the following attributes:
 | `ΔG (kcal)` | Gibbs free energy of duplex |
 | `ENTROPY` | Shannon entropy (sequence complexity) |
 | `METHYL.` | Detected methylation motifs |
-| `PATHOGEN SIG.` | Virulence-associated motif matches |
 
 ---
 
