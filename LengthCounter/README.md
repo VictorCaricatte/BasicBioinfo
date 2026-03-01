@@ -6,7 +6,6 @@
 
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue?style=for-the-badge&logo=python)](https://www.python.org/)
 [![BioPython](https://img.shields.io/badge/BioPython-1.80%2B-green?style=for-the-badge)](https://biopython.org/)
-[![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20Windows%20%7C%20macOS-lightgrey?style=for-the-badge)]()
 [![Repository](https://img.shields.io/badge/GitHub-LengthCounter-orange?style=for-the-badge&logo=github)](https://github.com/VictorCaricatte/BasicBioinfo/tree/main/LengthCounter)
 
