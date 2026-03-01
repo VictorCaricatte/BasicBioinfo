@@ -10,7 +10,7 @@ from logic import (UchihaSharinganAnalyzer, SenjuMokutonAnalyzer, UzumakiChakraF
                    YamatoWoodFeatureExtractor, GaaraSandTrimmer, HengeFormatShifter)
 
 def tenten_kuchiyose_arg_parser():
-    parser = argparse.ArgumentParser(description="LenghtCount Ninja Edition - Six Paths Suite")
+    parser = argparse.ArgumentParser(description="LenghtCount)
     
     
     parser.add_argument("files", nargs="*", help="Sequence or annotation file(s) to analyze")
