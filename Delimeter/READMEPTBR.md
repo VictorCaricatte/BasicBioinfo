@@ -20,7 +20,7 @@
 [![Versão](https://img.shields.io/badge/versão-0.3.1-brightgreen?style=for-the-badge)](#)
 [![Python](https://img.shields.io/badge/python-3.8+-blue?style=for-the-badge&logo=python)](#)
 [![PyQt5](https://img.shields.io/badge/UI-PyQt5-orange?style=for-the-badge)](#)
-[![Licença](https://img.shields.io/badge/licença-MIT-purple?style=for-the-badge)](#)
+[![Licença](https://img.shields.io/badge/licença-MIT-purple?style=for-the-badge)](https://github.com/VictorCaricatte/BasicBioinfo/blob/main/LICENSE)
 [![Reator](https://img.shields.io/badge/reator-ESTÁVEL-success?style=for-the-badge)](#)
 [![Biossegurança](https://img.shields.io/badge/NSF%2FANSI%2049-CONFORME-red?style=for-the-badge)](#)
 
