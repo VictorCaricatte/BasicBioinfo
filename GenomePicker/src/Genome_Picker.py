@@ -280,7 +280,7 @@ def generate_geographic_maps_basemap_plotly(tsv_metadata_file):
         print("Arquivo de metadados invalido ou inexistente para gerar mapa.")
         return
 
-    coordinates_url = "https://raw.githubusercontent.com/dlnrodrigues/panvita/dlnrodrigues-Supplementary/latlon.csv"
+    coordinates_url = "https://raw.githubusercontent.com/VictorCaricatte/DataBase-for-Bioinformatics/main/Additional/Latlon/latlon.csv"
     coordinates_file_name = "latlon.csv"
     
     try:
